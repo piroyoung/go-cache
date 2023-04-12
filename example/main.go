@@ -11,7 +11,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Initialize
-	c := cache.NewMemoryCache[string](time.Second)
+	c := cache.NewMemoryCache[string, string](time.Second)
 	go c.FlushExpiredLoop(ctx, time.Minute)
 	defer cancel()
 
@@ -20,7 +20,7 @@ func main() {
 
 	// Get
 	v, _ := c.Get("key")
-	fmt.Printf("value: %s\n", *v)
+	fmt.Printf("value: %s\n", v)
 
 	// Count
 	count, _ := c.Count()
