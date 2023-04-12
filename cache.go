@@ -1,4 +1,4 @@
-package go_cache
+package cache
 
 import (
 	"context"
@@ -10,6 +10,10 @@ import (
 type Value[T any] struct {
 	Value *T
 	TTL   int64
+}
+
+func (v *Value[T]) IsExpired() bool {
+	return v.TTL < time.Now().Unix()
 }
 
 type Cache[T any] interface {
@@ -37,7 +41,7 @@ func (c *MemoryCache[T]) Get(ctx context.Context, key string) (*T, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if v, ok := c.cache[key]; ok {
-		if v.TTL > time.Now().Unix() {
+		if v.IsExpired() {
 			return v.Value, nil
 		}
 		delete(c.cache, key)
@@ -80,7 +84,7 @@ func (c *MemoryCache[T]) Count(ctx context.Context) (int, error) {
 
 func (c *MemoryCache[T]) FlushExpired(ctx context.Context) {
 	for k, v := range c.cache {
-		if v.TTL < time.Now().Unix() {
+		if v.IsExpired() {
 			c.Delete(ctx, k)
 		}
 	}
