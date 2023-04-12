@@ -12,25 +12,25 @@ var (
 	ErrExpired  = errors.New("expired")
 )
 
-type Value[T any] struct {
+type volatile[T any] struct {
 	Value T
 	TTL   int64
 }
 
-func (v *Value[T]) IsExpired() bool {
+func (v *volatile[T]) IsExpired() bool {
 	return v.TTL <= time.Now().Unix()
 }
 
 type MemoryCache[S comparable, T any] struct {
 	TTL   time.Duration
-	cache map[S]Value[T]
+	cache map[S]volatile[T]
 	mu    sync.RWMutex
 }
 
 func NewMemoryCache[S comparable, T any](ttl time.Duration) *MemoryCache[S, T] {
 	return &MemoryCache[S, T]{
 		TTL:   ttl,
-		cache: make(map[S]Value[T]),
+		cache: make(map[S]volatile[T]),
 	}
 }
 
@@ -49,15 +49,14 @@ func (c *MemoryCache[S, T]) Get(key S) (T, error) {
 	return noop, ErrNotFound
 }
 
-func (c *MemoryCache[S, T]) Set(key S, value T) error {
+func (c *MemoryCache[S, T]) Set(key S, value T) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.cache[key] = Value[T]{
+	c.cache[key] = volatile[T]{
 		Value: value,
 		TTL:   time.Now().Add(c.TTL).Unix(),
 	}
-	return nil
 }
 
 func (c *MemoryCache[S, T]) Delete(key S) {
@@ -68,19 +67,18 @@ func (c *MemoryCache[S, T]) Delete(key S) {
 		delete(c.cache, key)
 	}
 }
-func (c *MemoryCache[S, T]) Clear() error {
+func (c *MemoryCache[S, T]) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.cache = make(map[S]Value[T])
-	return nil
+	c.cache = make(map[S]volatile[T])
 }
 
-func (c *MemoryCache[S, T]) Count() (int, error) {
+func (c *MemoryCache[S, T]) Count() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	return len(c.cache), nil
+	return len(c.cache)
 }
 
 func (c *MemoryCache[S, T]) FlushExpired() {

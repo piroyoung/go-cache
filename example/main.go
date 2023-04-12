@@ -23,7 +23,7 @@ func main() {
 	fmt.Printf("value: %s\n", v)
 
 	// Count
-	count, _ := c.Count()
+	count := c.Count()
 	fmt.Printf("count: %d\n", count)
 	cancel()
 
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// Count after expiration
-	count, _ = c.Count()
+	count = c.Count()
 	fmt.Printf("count: %d\n", count)
 
 }
