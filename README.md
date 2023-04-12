@@ -3,6 +3,16 @@
 
 # Example
 ```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/piroyoung/go-cache"
+	"time"
+)
+
+func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Initialize
@@ -34,4 +44,6 @@
 	// Count after expiration
 	count, _ = c.Count()
 	fmt.Printf("count: %d\n", count)
+
+}
 ```
