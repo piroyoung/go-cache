@@ -12,7 +12,7 @@ func main() {
 
 	// Initialize
 	c := cache.NewMemoryCache[string, string](time.Second)
-	go c.FlushExpiredLoop(ctx, time.Minute)
+	go c.FlushInterval(ctx, time.Minute)
 	defer cancel()
 
 	// Set
@@ -35,6 +35,13 @@ func main() {
 	fmt.Printf("value: %s, ok: %t\n", v, ok)
 
 	// Count after expiration
+	count = c.Count()
+	fmt.Printf("count: %d\n", count)
+
+	// Flush
+	c.Flush()
+
+	// Count after flush
 	count = c.Count()
 	fmt.Printf("count: %d\n", count)
 

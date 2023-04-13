@@ -33,7 +33,6 @@ func (c *MemoryCache[S, T]) Get(key S) (T, bool) {
 	defer c.mu.RUnlock()
 	if v, ok := c.cache[key]; ok {
 		if v.IsExpired() {
-			delete(c.cache, key)
 			var noop T
 			return noop, false
 		}
@@ -75,21 +74,24 @@ func (c *MemoryCache[S, T]) Count() int {
 	return len(c.cache)
 }
 
-func (c *MemoryCache[S, T]) FlushExpired() {
+func (c *MemoryCache[S, T]) Flush() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	for k, v := range c.cache {
 		if v.IsExpired() {
-			c.Delete(k)
+			delete(c.cache, k)
 		}
 	}
 }
 
-func (c *MemoryCache[S, T]) FlushExpiredLoop(ctx context.Context, interval time.Duration) {
+func (c *MemoryCache[S, T]) FlushInterval(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
-			c.FlushExpired()
+			c.Flush()
 		case <-ctx.Done():
 			return
 		}
