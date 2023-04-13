@@ -19,8 +19,8 @@ func main() {
 	c.Set("key", "value")
 
 	// Get
-	v, _ := c.Get("key")
-	fmt.Printf("value: %s\n", v)
+	v, ok := c.Get("key")
+	fmt.Printf("value: %s, ok: %t\n", v, ok)
 
 	// Count
 	count := c.Count()
@@ -31,10 +31,8 @@ func main() {
 	time.Sleep(time.Second)
 
 	// Get after expiration
-	v, err := c.Get("key")
-	if err != nil {
-		fmt.Printf("error: %v\n", err)
-	}
+	v, ok = c.Get("key")
+	fmt.Printf("value: %s, ok: %t\n", v, ok)
 
 	// Count after expiration
 	count = c.Count()

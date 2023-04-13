@@ -2,14 +2,8 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"time"
-)
-
-var (
-	ErrNotFound = errors.New("not found")
-	ErrExpired  = errors.New("expired")
 )
 
 type volatile[T any] struct {
@@ -34,19 +28,19 @@ func NewMemoryCache[S comparable, T any](ttl time.Duration) *MemoryCache[S, T] {
 	}
 }
 
-func (c *MemoryCache[S, T]) Get(key S) (T, error) {
+func (c *MemoryCache[S, T]) Get(key S) (T, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if v, ok := c.cache[key]; ok {
 		if v.IsExpired() {
 			delete(c.cache, key)
 			var noop T
-			return noop, ErrExpired
+			return noop, false
 		}
-		return v.Value, nil
+		return v.Value, true
 	}
 	var noop T
-	return noop, ErrNotFound
+	return noop, false
 }
 
 func (c *MemoryCache[S, T]) Set(key S, value T) {
